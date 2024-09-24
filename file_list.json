@@ -1,0 +1,4 @@
+[
+  {"type": "DropItem", "file_list": ["DropItem_1.json", "DropItem_2.json"]},
+  {"type": "MissionClass", "file_list": ["MissionClass.json"]}
+]

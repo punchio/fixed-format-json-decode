@@ -1,0 +1,97 @@
+#
+# 本文件用于描述配置表相关数据类型，作为表格数据文件的导出依据以及服务器配置管理代码的生成依据
+#
+# import_list - 引入外部数据类型，name为引用的数据类型名称，type为真实类型
+#   name    - 别名名称，在配置中使用的类型，命名要求按大驼峰规范，不可与表名重名
+#
+#   type    - 对应的基础数据类型，生成配置数据时，以此类型解析
+#
+#   client  - 客户端类型名称，客户端代码生成时，会根据此名称，生成对应的客户端数据类型
+#
+#   server  - 服务器类型名称，服务器代码生成时，会根据此名称，生成对应的服务器数据类型
+#
+#
+#
+# type_list 数据类型定义说明
+#   name    - 类型名称，命名要求按大驼峰规范，不可重名
+#
+#   comment   - 字段注释内容，代码生成时，会把注释加在定义后面。不要直接用注释的方式描述数据，因为代码生成时需要这个信息
+#
+#   filter  过滤器，指定导出时是否需要进行裁剪，生成表格数据时，也会根据此过滤器来裁剪数据，不需要的表格数据文件或者字段就不生成
+#               若不配置，则默认取值为sc
+#             sc 表示服务器和客户端都需要该类型所关联的数据
+#             s  表示服务器需要该类型所关联的数据
+#             c  表示客户端需要该类型所关联的数据
+#             -  表示不生成代码，只是为了帮助生成表格数据。有些配置结构可能在游戏代码中，或者protobu中。
+#                这种数据结构需要定义一个帮助结构，不然无法正确生成代码
+#   field_list  - 指定类型的数据字段，字段定义说明如下
+#             name  - 字段名称，命名要求按小写加下划线的命名规范
+#             type  - 字段类型，支持如下类型
+#                 (1) 基础数据类型，包括: bool int int32 int64 uint32 uint64 float datetime string
+#                 (2) 自定义数据类型，要求在本描述文件中有明确定义，不可循环引用
+#                 (3) 容器类型，支持array类型，支持容器嵌套
+#                 (4) 引入类型，如果类型为外部引入的类型，需要先在 import_list 中定义
+#             filter    - 过滤器，若不配置，默认取值为sc
+#             comment   - 字段注释内容，代码生成时，会把注释加在定义后面。不要直接用注释的方式描述数据，因为代码生成时需要这个信息
+#
+#
+
+import_list = [
+    { name = "ResourceGroup", type = "int", client = "int", server = "pb.EResourceGroup" },
+    { name = "Compare", type = "int", client = "int", server = "pb.EResourceGroup" },
+]
+
+# 帮助解析的数据结构，不需要导出，相对固定，放在最前面
+[[type_list]]
+name = "Resource"
+filter = "-"
+field_list = [
+    { name = "Group", type = "ResourceGroup", comment = "资源组" },
+    { name = "ID", type = "int32", comment = "资源ID" },
+    { name = "Count", type = "int64", comment = "资源数量" },
+]
+
+[[type_list]]
+name = "ConditionEntity"
+filter = "-"
+field_list = [
+    { name = "ID", type = "uint32", comment = "condition表格ID" },
+    { name = "Target", type = "int64", comment = "条件目标值" },
+    { name = "Compare", type = "Compare", comment = "条件比较方式" },
+    { name = "Param", type = "array<int64>", comment = "条件参数列表" },
+]
+
+# 辅助数据结构定义结束
+
+
+# 表格类型数据定义开始
+
+[[type_list]]
+name = "Language" # 表名，不可重名
+comment = "多语言表"
+filter = "c" # 只有客户端需要
+field_list = [ # 字段列表
+    { name = "id", type = "uint32", comment = "多语言ID" },
+    { name = "desc", type = "string", comment = "多语言描述" },
+]
+
+[[type_list]]
+name = "DropItem" # 表名
+comment = "掉落类型表"
+filter = "s" # 只有服务端需要
+field_list = [ # 字段列表
+    { name = "id", type = "uint32", comment = "掉落包ID" },
+    { name = "type", type = "uint32", comment = "掉落类" },
+    { name = "mode", type = "uint32", comment = "掉落模型" },
+]
+
+[[type_list]]
+name = "MissionClass" # 表名
+comment = "任务表"
+# 没有设置filter，服务器客户端都会用到这张表
+field_list = [ # 字段列表
+    { name = "id", type = "uint32", comment = "任务线ID" },
+    { name = "type", type = "uint32", comment = "任务线类型" },
+    { name = "openCondition", type = "ConditionEntity", filter = "s", comment = "开启条件" }, # 只有服务器需要
+    { name = "rewards", type = "array<Resource>", comment = "奖励列表" },
+]
