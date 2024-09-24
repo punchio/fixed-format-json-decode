@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fjson/codec"
+	"fjson/gen"
+	"github.com/BurntSushi/toml"
 	jsoniter "github.com/json-iterator/go"
+	"os"
 	"reflect"
 )
 
@@ -68,4 +71,16 @@ func init() {
 		panic(err)
 	}
 	manualBytes = buf.Bytes()
+
+	bs, err := os.ReadFile("./conf.toml")
+	if err != nil {
+		panic(err)
+	}
+
+	mgr := &gen.TypeMgr{}
+	err = toml.Unmarshal(bs, mgr)
+	if err != nil {
+		panic(err)
+	}
+
 }
